@@ -203,6 +203,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	}
 
 	/**
+	 *
 	 * Return an instance, which may be shared or independent, of the specified bean.
 	 * @param name the name of the bean to retrieve
 	 * @param requiredType the required type of the bean to retrieve
@@ -288,8 +289,18 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 
+				/**
+				 * 先从 singletonObjects 集合获取 bean 实例，若不为空，则直接返回
+				 * 若为空，进入创建 bean 实例阶段。先将 beanName 添加到 singletonsCurrentlyInCreation
+				 * 通过 getObject 方法调用 createBean 方法创建 bean 实例
+				 * 将 beanName 从 singletonsCurrentlyInCreation 集合中移除
+				 * 将 <beanName, singletonObject> 映射缓存到 singletonObjects 集合中
+				 */
 				// Create bean instance.
 				if (mbd.isSingleton()) {
+					//createBean 方法被匿名工厂类的 getObject 方法包裹，
+					//					// 但这个匿名工厂类对象并未直接调用 getObject 方法。
+					// 而是将自身作为参数传给了getSingleton(String, ObjectFactory)方法
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
 							return createBean(beanName, mbd, args);

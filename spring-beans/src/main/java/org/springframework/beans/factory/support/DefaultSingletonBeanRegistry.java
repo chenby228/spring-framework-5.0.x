@@ -233,6 +233,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(beanName, "Bean name must not be null");
 		synchronized (this.singletonObjects) {
+			// 从缓存中获取单例 bean，若不为空，则直接返回，不用再初始化
 			Object singletonObject = this.singletonObjects.get(beanName);
 			if (singletonObject == null) {
 				if (this.singletonsCurrentlyInDestruction) {
@@ -243,6 +244,10 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
+				/*
+				 * 将 beanName 添加到 singletonsCurrentlyInCreation 集合中，
+				 * 用于表明 beanName 对应的 bean 正在创建中
+				 */
 				beforeSingletonCreation(beanName);
 				boolean newSingleton = false;
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
@@ -250,6 +255,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
+					// 通过 getObject 方法调用 createBean 方法创建 bean 实例
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
@@ -273,9 +279,14 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
+					// 将 beanName 从 singletonsCurrentlyInCreation 移除
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
+					/*
+					 * 将 <beanName, singletonObject> 键值对添加到 singletonObjects 集合中，
+					 * 并从其他集合（比如 earlySingletonObjects）中移除 singletonObject 记录
+					 */
 					addSingleton(beanName, singletonObject);
 				}
 			}
@@ -360,8 +371,8 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	}
 
 	/**
-	 * Callback before singleton creation.
-	 * <p>The default implementation register the singleton as currently in creation.
+	 * 创建单例之前的回调
+	 * 默认实现将单例注册为当前正在创建中
 	 * @param beanName the name of the singleton about to be created
 	 * @see #isSingletonCurrentlyInCreation
 	 */
