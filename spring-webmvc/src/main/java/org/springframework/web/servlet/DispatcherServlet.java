@@ -153,6 +153,7 @@ import org.springframework.web.util.WebUtils;
  * @see org.springframework.web.HttpRequestHandler
  * @see org.springframework.web.servlet.mvc.Controller
  * @see org.springframework.web.context.ContextLoaderListener
+ * DispatcherServlet-->HandlerMapping -->HandlerExecutionChain(HandlerIntercepter, Handler)-->HandlerAdapter-->Handler(Controller)-->ModelAndView-->ViewReslover-->View
  */
 @SuppressWarnings("serial")
 public class DispatcherServlet extends FrameworkServlet {
